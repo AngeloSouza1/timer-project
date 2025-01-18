@@ -1,6 +1,5 @@
 # ⏰ Timer Project - Gerenciador de Alarmes e Timers
 
-![Banner](link_para_o_banner.png) <!-- Substitua pelo link do banner no repositório -->
 
 Um aplicativo simples e intuitivo para gerenciar estudos e tarefas diárias. Com funcionalidades de agendamento e timers baseados na técnica Pomodoro, é perfeito para aumentar sua produtividade.
 
