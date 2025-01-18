@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Alarmes e Timers</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+      <div class="container my-5">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-clock text-primary"></i> Gestão de Alarmes e Timers
+        </h1>
+        <div class="row">
+            <!-- Divisão para Timers -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-hourglass-half"></i> Timers</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Timer em segundos -->
+                        <section class="mb-4">
+                            <h5><i class="fas fa-stopwatch text-secondary"></i> Timer em Segundos</h5>
+                            <form id="timerSecondsForm" method="POST" class="row g-3 align-items-center" onsubmit="handleTimerSeconds(event)">
+                                <div class="col-6">
+                                    <label for="seconds" class="form-label">⏲️ Segundos</label>
+                                    <input type="number" class="form-control" id="seconds" name="seconds" placeholder="Ex.: 30" required>
+                                </div>
+                                <div class="col-6">
+                                    <label for="description_seconds" class="form-label">📝 Descrição (Opcional)</label>
+                                    <input type="text" class="form-control" id="description_seconds" name="description_seconds" placeholder="Descrição do timer">
+                                </div>
+                                <div class="col-12 d-flex gap-2 align-items-center">
+                                    <button type="submit" class="btn btn-primary btn-sm" id="secondsSubmit" title="Iniciar">
+                                        <i class="fas fa-play"></i> 
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" id="secondsCancel" onclick="cancelTimerSeconds()" title="Cancelar" disabled>
+                                        <i class="fas fa-stop"></i> 
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+    
+                        <!-- Timer por horário -->
+                        <section>
+                            <h5><i class="fas fa-clock text-secondary"></i> Timer por Horário</h5>
+                            <form id="timerHourForm" method="POST" class="row g-3 align-items-center" onsubmit="handleTimerHour(event)">
+                                <div class="col-6">
+                                    <label for="hour" class="form-label">🕒 Horário (HH:MM)</label>
+                                    <input type="time" class="form-control" id="hour" name="hour" required>
+                                </div>
+                                <div class="col-6">
+                                    <label for="description_hour" class="form-label">📝 Descrição (Opcional)</label>
+                                    <input type="text" class="form-control" id="description_hour" name="description_hour" placeholder="Descrição do timer">
+                                </div>
+                                <div class="col-12 d-flex gap-2 align-items-center">
+                                    <button type="submit" class="btn btn-primary btn-sm" id="hourSubmit" title="Iniciar">
+                                        <i class="fas fa-play"></i> 
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" id="hourCancel" onclick="cancelTimerHour()" title="Cancelar" disabled>
+                                        <i class="fas fa-stop"></i> 
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+    
+                        <!-- Logs -->
+                        <section class="mt-4">
+                            <h5><i class="fas fa-clipboard-list text-secondary"></i> Logs</h5>
+                            <textarea id="logs" class="form-control bg-light" rows="8" readonly style="resize: none;"></textarea>
+                        </section>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Divisão para Agendamento -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0"><i class="fas fa-calendar-check"></i> Agendamento de Alarmes Diários</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Formulário de Agendamento -->
+                        <section class="mb-4">
+                            <h5><i class="fas fa-plus-circle text-secondary"></i> Novo Alarme</h5>
+                            <form id="scheduleForm" method="POST" class="row g-3" onsubmit="handleSchedule(event)">
+                                <div class="col-6">
+                                    <label for="time" class="form-label">🕒 Horário (HH:MM)</label>
+                                    <input type="time" class="form-control" id="time" name="time" required>
+                                </div>
+                                <div class="col-6">
+                                    <label for="description" class="form-label">📝 Descrição</label>
+                                    <input type="text" class="form-control" id="description" name="description" placeholder="Descrição do alarme">
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100" id="addAlarmButton">
+                                        <i class="fas fa-plus"></i> Adicionar Alarme
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+    
+                        <!-- Tabela de Alarmes -->
+                        <section>
+                            <h5><i class="fas fa-list-alt text-secondary"></i> Alarmes Agendados</h5>
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-striped">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>#</th>
+                                            <th><i class="fas fa-clock"></i> Horário</th>
+                                            <th><i class="fas fa-comment"></i> Descrição</th>
+                                            <th><i class="fas fa-tools"></i> Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="alarmsTableBody">
+                                        <!-- Linhas da tabela serão renderizadas dinamicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal para Mensagens -->
+        <div class="modal fade" id="alarmModal" tabindex="-1" aria-labelledby="alarmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="alarmModalLabel">⏰ Alarme</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="alarmModalMessage"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    
+
+    <audio id="alarmSound" src="static/alarme.mp3" loop></audio>
+
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+
+    <!-- Custom JS -->
+    <script>
+        let secondsTimeout;
+        let hourTimeout;
+        let alarmIdCounter = 0;
+    
+        // Function to log messages to the logs textarea
+        function logMessage(message) {
+            const logs = document.getElementById('logs');
+            logs.value += `${new Date().toLocaleTimeString()}: ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+    
+        // Timer in seconds
+        function handleTimerSeconds(event) {
+            event.preventDefault();
+            const secondsInput = document.getElementById("seconds");
+            const descriptionInput = document.getElementById("description_seconds");
+            const submitButton = document.getElementById("secondsSubmit");
+            const cancelButton = document.getElementById("secondsCancel");
+    
+            const seconds = parseInt(secondsInput.value);
+    
+            if (isNaN(seconds) || seconds <= 0) {
+                alert("Insira um valor válido para os segundos.");
+                return;
+            }
+    
+            logMessage(`Iniciando timer de ${seconds} segundos.  Descrição: ${descriptionInput.value || "Sem descrição"}`);
+            
+            secondsInput.disabled = true;
+            descriptionInput.disabled = true;
+            submitButton.disabled = true;
+            cancelButton.disabled = false;
+    
+            secondsTimeout = setTimeout(() => {
+                playAlarmSound(); // Inicia o som
+                
+            }, seconds * 1000);
+                    }
+    
+        function cancelTimerSeconds() {
+            clearTimeout(secondsTimeout);
+            logMessage("Timer em segundos cancelado.");
+            resetTimerSeconds();
+        }
+    
+        function resetTimerSeconds() {
+            const secondsInput = document.getElementById("seconds");
+            const descriptionInput = document.getElementById("description_seconds");
+            document.getElementById("secondsSubmit").disabled = false;
+            document.getElementById("secondsCancel").disabled = true;
+            secondsInput.disabled = false;
+            descriptionInput.disabled = false;
+            secondsInput.value = "";
+            descriptionInput.value = "";
+           
+        }
+    
+        // Timer by specific hour
+        function handleTimerHour(event) {
+            event.preventDefault();
+            const hourInput = document.getElementById("hour");
+            const descriptionInput = document.getElementById("description_hour");
+            const submitButton = document.getElementById("hourSubmit");
+            const cancelButton = document.getElementById("hourCancel");
+    
+            const [targetHour, targetMinute] = hourInput.value.split(":").map(Number);
+            const now = new Date();
+            const targetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetHour, targetMinute);
+    
+            if (targetTime <= now) {
+                alert("Insira um horário no futuro.");
+                return;
+            }
+    
+            logMessage(`Iniciando timer para o horário: ${hourInput.value}. Descrição: ${descriptionInput.value || "Sem descrição"}`);
+            
+
+            hourInput.disabled = true;
+            descriptionInput.disabled = true;
+            submitButton.disabled = true;
+            cancelButton.disabled = false;
+    
+            const timeUntil = targetTime - now;
+            hourTimeout = setTimeout(() => {
+                playAlarmSound(); // Toca o som do alarme
+                alert(`⏰ Timer finalizado para o horário ${hourInput.value}!`);
+                logMessage(`Timer finalizado para o horário: ${hourInput.value}.`);
+                resetTimerHour();
+            }, timeUntil);
+        }
+    
+        function cancelTimerHour() {
+            clearTimeout(hourTimeout);
+            logMessage("Timer por horário cancelado.");
+            resetTimerHour();
+        }
+    
+        function resetTimerHour() {
+            const hourInput = document.getElementById("hour");
+            const descriptionInput = document.getElementById("description_hour");
+            document.getElementById("hourSubmit").disabled = false;
+            document.getElementById("hourCancel").disabled = true;
+            hourInput.disabled = false;
+            descriptionInput.disabled = false;
+            hourInput.value = "";
+            descriptionInput.value = "";
+            
+        }
+    
+ 
+// Lista para armazenar os alarmes agendados
+const scheduledAlarms = [];
+
+// Atualiza o monitoramento dos alarmes agendados
+function checkScheduledAlarms() {
+    const now = new Date(); // Obtém a hora atual
+
+    scheduledAlarms.forEach((alarm, index) => {
+        const [alarmHour, alarmMinute] = alarm.time.split(":").map(Number); // Extrai a hora e o minuto do alarme
+        const alarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), alarmHour, alarmMinute);
+
+        // Dispara o alarme se o horário atual for igual ou superior ao horário do alarme
+        if (alarmTime <= now) {
+             // Tocar o som do alarme
+             const alarmSound = document.getElementById("alarmSound");
+             alarmSound.play();    
+
+            alert(`⏰ Alarme disparado! Horário: ${alarm.time}. Descrição: ${alarm.description}`);
+            logMessage(`Alarme disparado: ${alarm.time}. Descrição: ${alarm.description}`);
+            scheduledAlarms.splice(index, 1); // Remove o alarme da lista
+        }
+    });
+}
+
+// Função que inicia o monitoramento contínuo
+function startAlarmMonitoring() {
+    setInterval(checkScheduledAlarms, 1000); // Verifica os alarmes a cada segundo
+}
+
+// Inicia o monitoramento ao carregar a página
+startAlarmMonitoring();
+
+// Agendamento de alarmes
+function handleSchedule(event) {
+    event.preventDefault();
+    const timeInput = document.getElementById("time");
+    const descriptionInput = document.getElementById("description");
+    const tableBody = document.getElementById("alarmsTableBody");
+
+    const now = new Date();
+    const [inputHour, inputMinute] = timeInput.value.split(":").map(Number);
+    const inputTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), inputHour, inputMinute);
+
+    if (inputTime <= now) {
+        alert("Insira um horário no futuro para o agendamento.");
+        return;
+    }
+
+    logMessage(`Alarme agendado para ${timeInput.value}. Descrição: ${descriptionInput.value || "Sem descrição"}`);
+
+    // Adiciona o alarme à lista de alarmes
+    const alarmId = ++alarmIdCounter;
+    scheduledAlarms.push({
+        id: alarmId,
+        time: timeInput.value,
+        description: descriptionInput.value || "Sem descrição",
+    });
+
+    // Cria uma nova linha na tabela
+    const newRow = document.createElement("tr");
+    newRow.dataset.alarmId = alarmId;
+    newRow.innerHTML = `
+        <td>${alarmId}</td>
+        <td class="time-cell">${timeInput.value}</td>
+        <td class="description-cell">${descriptionInput.value || "Sem descrição"}</td>
+        <td>
+            <button 
+                class="btn btn-warning btn-sm me-1" 
+                onclick="editAlarm(this)">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button 
+                class="btn btn-danger btn-sm" 
+                onclick="deleteAlarm(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    tableBody.appendChild(newRow);
+
+    sortTableByTime(tableBody); // Ordena a tabela por horário
+
+    timeInput.value = "";
+    descriptionInput.value = "";
+}
+
+// Função para ordenar a tabela por horário
+function sortTableByTime(tableBody) {
+    const rows = Array.from(tableBody.rows); // Converte as linhas da tabela para um array
+    rows.sort((a, b) => {
+        const timeA = a.querySelector(".time-cell").innerText;
+        const timeB = b.querySelector(".time-cell").innerText;
+
+        return timeA.localeCompare(timeB); // Ordena os horários em ordem crescente
+    });
+
+    // Reinsere as linhas ordenadas no corpo da tabela
+    rows.forEach(row => tableBody.appendChild(row));
+}
+
+// Função para excluir um alarme
+function deleteAlarm(button) {
+    const row = button.closest("tr"); // Encontra a linha correspondente
+    const alarmId = parseInt(row.dataset.alarmId);
+
+    // Remove o alarme da lista
+    const alarmIndex = scheduledAlarms.findIndex(alarm => alarm.id === alarmId);
+    if (alarmIndex !== -1) {
+        scheduledAlarms.splice(alarmIndex, 1);
+    }
+
+    logMessage(`Alarme para ${row.cells[1].innerText} excluído.`);
+    row.remove(); // Remove a linha da tabela
+}
+
+// Função para ativar a edição de um alarme
+function editAlarm(button) {
+    const row = button.closest("tr");
+    const alarmId = parseInt(row.dataset.alarmId); // Obtém o ID do alarme
+
+    const timeCell = row.querySelector(".time-cell"); // Célula do horário
+    const descriptionCell = row.querySelector(".description-cell"); // Célula da descrição
+
+    // Armazena os valores originais
+    const originalTime = timeCell.innerText;
+    const originalDescription = descriptionCell.innerText;
+
+    // Substitui o conteúdo da célula por campos de entrada
+    timeCell.innerHTML = `<input type="time" class="form-control form-control-sm" value="${originalTime}" id="editTime-${alarmId}">`;
+    descriptionCell.innerHTML = `<input type="text" class="form-control form-control-sm" value="${originalDescription}" id="editDescription-${alarmId}" placeholder="Descrição">`;
+
+    // Altera os botões de ação para Salvar/Cancelar
+    row.cells[3].innerHTML = `
+        <button class="btn btn-success btn-sm me-1" onclick="saveEditAlarm(this, ${alarmId})">
+            <i class="fas fa-save"></i>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="cancelEditAlarm(this, '${originalTime}', '${originalDescription}')">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+}
+
+// Função para salvar as alterações de um alarme
+function saveEditAlarm(button, alarmId) {
+    const row = button.closest("tr");
+
+    const timeInput = document.getElementById(`editTime-${alarmId}`); // Campo de horário editado
+    const descriptionInput = document.getElementById(`editDescription-${alarmId}`); // Campo de descrição editado
+
+    // Valida o horário editado
+    if (!timeInput.value) {
+        alert("O horário não pode estar vazio.");
+        return;
+    }
+
+    // Atualiza os valores na lista de alarmes
+    const alarmIndex = scheduledAlarms.findIndex(alarm => alarm.id === alarmId);
+    if (alarmIndex !== -1) {
+        scheduledAlarms[alarmIndex].time = timeInput.value;
+        scheduledAlarms[alarmIndex].description = descriptionInput.value || "Sem descrição";
+    }
+
+    // Atualiza os valores na tabela
+    row.querySelector(".time-cell").innerText = timeInput.value;
+    row.querySelector(".description-cell").innerText = descriptionInput.value || "Sem descrição";
+
+    const tableBody = row.closest("tbody"); // Obtém o corpo da tabela
+    sortTableByTime(tableBody); // Reordena a tabela após salvar as alterações
+
+    // Restaura os botões de ação
+    row.cells[3].innerHTML = `
+        <button class="btn btn-warning btn-sm me-1" onclick="editAlarm(this)">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAlarm(this)">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+
+    logMessage(`Alarme ${alarmId} atualizado - Horário: ${timeInput.value}. Descrição: ${descriptionInput.value || "Sem descrição"}`);
+}
+
+// Função para cancelar a edição
+function cancelEditAlarm(button, originalTime, originalDescription) {
+    const row = button.closest("tr");
+
+    // Restaura os valores originais
+    row.querySelector(".time-cell").innerText = originalTime;
+    row.querySelector(".description-cell").innerText = originalDescription;
+
+    // Restaura os botões de ação
+    row.cells[3].innerHTML = `
+        <button class="btn btn-warning btn-sm me-1" onclick="editAlarm(this)">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAlarm(this)">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+
+    logMessage(`Edição do alarme ${row.cells[0].innerText} cancelada.`);
+}
+
+// Função para tocar o som do alarme
+function playAlarmSound() {
+    const alarmSound = document.getElementById("alarmSound");
+    alarmSound.currentTime = 0; // Reinicia o áudio
+    alarmSound.play(); // Toca o áudio
+}
+
+// Função para lidar com o timer em segundos
+function handleTimerSeconds(event) {
+    event.preventDefault();
+    const secondsInput = document.getElementById("seconds");
+    const descriptionInput = document.getElementById("description_seconds");
+    const submitButton = document.getElementById("secondsSubmit");
+    const cancelButton = document.getElementById("secondsCancel");
+
+    const seconds = parseInt(secondsInput.value);
+
+    if (isNaN(seconds) || seconds <= 0) {
+        alert("Insira um valor válido para os segundos.");
+        return;
+    }
+
+    logMessage(`⏲️ Iniciando timer de ${seconds} segundos.`);
+
+    secondsInput.disabled = true;
+    descriptionInput.disabled = true;
+    submitButton.disabled = true;
+    cancelButton.disabled = false;
+
+    secondsTimeout = setTimeout(() => {
+        playAlarmSound(); // Toca o som do alarme
+        alert(`⏰ Timer em segundos finalizado! Descrição: ${descriptionInput.value || "Sem descrição"}`);
+        logMessage(`⏰ Timer em segundos finalizado! Descrição: ${descriptionInput.value || "Sem descrição"}`);
+        resetTimerSeconds();
+    }, seconds * 1000);
+}
+
+// Função para lidar com o timer por horário
+function handleTimerHour(event) {
+    event.preventDefault();
+    const hourInput = document.getElementById("hour");
+    const descriptionInput = document.getElementById("description_hour");
+    const submitButton = document.getElementById("hourSubmit");
+    const cancelButton = document.getElementById("hourCancel");
+
+    const [targetHour, targetMinute] = hourInput.value.split(":").map(Number);
+    const now = new Date();
+    const targetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetHour, targetMinute);
+
+    if (targetTime <= now) {
+        alert("Insira um horário no futuro.");
+        return;
+    }
+
+    logMessage(`🕒 Iniciando timer para o horário: ${hourInput.value}.`);
+
+    hourInput.disabled = true;
+    descriptionInput.disabled = true;
+    submitButton.disabled = true;
+    cancelButton.disabled = false;
+
+    const timeUntil = targetTime - now;
+    hourTimeout = setTimeout(() => {
+        playAlarmSound(); // Toca o som do alarme
+        alert(`⏰ Timer finalizado para o horário ${hourInput.value}! Descrição: ${descriptionInput.value || "Sem descrição"}`);
+        logMessage(`⏰ Timer finalizado para o horário ${hourInput.value}! Descrição: ${descriptionInput.value || "Sem descrição"}`);
+        resetTimerHour();
+    }, timeUntil);
+}
+
+// Monitoramento de alarmes agendados
+function checkScheduledAlarms() {
+    const now = new Date();
+
+    scheduledAlarms.forEach((alarm, index) => {
+        const [alarmHour, alarmMinute] = alarm.time.split(":").map(Number);
+        const alarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), alarmHour, alarmMinute);
+
+        if (alarmTime <= now) {
+            playAlarmSound(); // Toca o som do alarme
+            alert(`⏰ Alarme disparado! Horário: ${alarm.time}. Descrição: ${alarm.description}`);
+            logMessage(`⏰ Alarme disparado! Horário: ${alarm.time}. Descrição: ${alarm.description}`);
+            scheduledAlarms.splice(index, 1); // Remove o alarme disparado
+        }
+    });
+}
+
+let alarmSound;
+
+// Função para tocar o som do alarme (sem loop)
+function playAlarmSound() {
+    if (alarmSound) {
+        alarmSound.pause(); // Pausa o som anterior, se houver
+        alarmSound.currentTime = 0; // Reinicia o áudio
+    }
+    alarmSound = new Audio('/static/alarme.mp3'); // Caminho do áudio
+    alarmSound.play().catch(error => console.error("Erro ao reproduzir o som:", error));
+}
+
+// Função para parar o som do alarme
+function stopAlarmSound() {
+    if (alarmSound) {
+        alarmSound.pause(); // Pausa o som
+        alarmSound.currentTime = 0; // Reinicia o áudio
+        alarmSound = null; // Remove a referência
+    }
+}
+
+// Função para exibir o modal
+function showModal(message) {
+    const modalMessage = document.getElementById('alarmModalMessage');
+    modalMessage.textContent = message; // Insere a mensagem no modal
+
+    const modal = new bootstrap.Modal(document.getElementById('alarmModal'));
+    modal.show(); // Exibe o modal
+}
+
+</script>
+</body>
+</html>
